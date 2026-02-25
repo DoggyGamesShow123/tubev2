@@ -3,33 +3,81 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>YouTube Watch (nocookie embed) + Safe Download</title>
+  <title>YouTube Watch (nocookie embed)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
       --accent: #2563eb;
-      --bg: #0b1020;
+      --bg1: #0b1020;
+      --bg2: #141b38;
+      --bg3: #0b1020;
+      --bg4: #070a14;
       --panel: #0f172a;
       --text: #e5e7eb;
       --muted: #94a3b8;
       --error: #ef4444;
-      --ok: #22c55e;
     }
+
+    * { box-sizing: border-box; }
+
     html, body {
       height: 100%;
       margin: 0;
-      background: radial-gradient(1200px 600px at 20% 0%, #141b38 0, #0b1020 70%, #070a14 100%);
       color: var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Inter, Arial, "Noto Sans";
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      /* Animated background gradient */
+      background: linear-gradient(120deg, var(--bg1), var(--bg2), var(--bg3), var(--bg4));
+      background-size: 300% 300%;
+      animation: bgShift 28s ease-in-out infinite;
     }
+
+    /* Soft radial glow overlay behind content for depth */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      background:
+        radial-gradient(600px 400px at 10% -10%, rgba(59,130,246,0.18), rgba(59,130,246,0) 60%),
+        radial-gradient(700px 500px at 90% 20%, rgba(99,102,241,0.14), rgba(99,102,241,0) 60%),
+        radial-gradient(900px 600px at 50% 120%, rgba(30,58,138,0.25), rgba(30,58,138,0) 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes bgShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Snow canvas sits above background, below UI */
+    #snowCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none; /* never blocks clicks */
+    }
+
     .wrap {
+      position: relative;
+      z-index: 1; /* Above snow */
       max-width: 720px;
       margin: 6vh auto;
       padding: 24px;
     }
-    h1 { font-size: 1.25rem; margin: 0 0 12px 0; font-weight: 600; }
+
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 12px 0;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+    }
+
     .controls {
-      display: flex; gap: 10px; align-items: center;
+      display: flex;
+      gap: 10px;
+      align-items: center;
       background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
       border: 1px solid rgba(148,163,184,0.22);
       border-radius: 14px;
@@ -40,13 +88,16 @@
         0 2px 8px rgba(2,6,23,0.2);
       backdrop-filter: blur(6px);
     }
+
     .controls input[type="url"] {
-      flex: 1; padding: 12px 14px;
+      flex: 1;
+      padding: 12px 14px;
       border: 1px solid rgba(148,163,184,0.28);
       background: rgba(15,23,42,0.85);
       color: var(--text);
       border-radius: 10px;
-      outline: none; font-size: 14px;
+      outline: none;
+      font-size: 14px;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .controls input[type="url"]::placeholder { color: var(--muted); }
@@ -54,28 +105,42 @@
       border-color: rgba(37,99,235,0.7);
       box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
     }
-    .btn {
+
+    .controls button {
       padding: 12px 16px;
       background: linear-gradient(180deg, #2f6fe9, #2056c7);
-      color: white; border: none; border-radius: 10px;
-      font-weight: 600; letter-spacing: 0.2px; cursor: pointer; white-space: nowrap;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      white-space: nowrap;
       transition: transform 0.05s ease, box-shadow 0.15s ease, filter 0.15s ease;
       box-shadow: 0 8px 20px rgba(37,99,235,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
     }
-    .btn:hover {
+    .controls button:hover {
       filter: brightness(1.05);
       box-shadow: 0 12px 26px rgba(37,99,235,0.32), inset 0 1px 0 rgba(255,255,255,0.22);
     }
-    .btn:active { transform: translateY(1px); }
-    .btn.secondary {
-      background: linear-gradient(180deg, #374151, #1f2937);
-      box-shadow: 0 8px 20px rgba(17,24,39,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
-    }
-    .hint { margin: 8px 4px 16px 4px; font-size: 13px; color: var(--muted); }
-    .error { margin: 8px 4px 0 4px; font-size: 13px; color: var(--error); display: none; }
-    .ok { margin: 8px 4px 0 4px; font-size: 13px; color: var(--ok); display: none; }
+    .controls button:active { transform: translateY(1px); }
 
-    /* 16:9 player box */
+    .hint {
+      margin: 8px 4px 16px 4px;
+      font-size: 13px;
+      color: var(--muted);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+    }
+
+    .error {
+      margin: 8px 4px 0 4px;
+      font-size: 13px;
+      color: var(--error);
+      display: none;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.25);
+    }
+
+    /* 16:9 responsive player box (kept small-ish) */
     .player-wrap {
       width: min(560px, 100%);
       aspect-ratio: 16 / 9;
@@ -89,19 +154,39 @@
       margin-top: 16px;
     }
     .player-wrap iframe {
-      width: 100%; height: 100%; border: 0; display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
     }
 
-    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
-    .meta { font-size: 12px; color: var(--muted); user-select: text; }
+    .meta {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      user-select: text;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.35);
+    }
+
     @media (max-width: 480px) {
       .wrap { padding: 16px; }
       .controls { flex-direction: column; }
-      .btn { width: 100%; }
+      .controls button { width: 100%; }
+    }
+
+    /* Respect user motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      html, body {
+        animation: none !important;
+        background-size: auto !important;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Snow canvas (visual only) -->
+  <canvas id="snowCanvas" aria-hidden="true"></canvas>
+
   <div class="wrap">
     <h1>Watch a YouTube video (privacy‑enhanced embed)</h1>
 
@@ -114,17 +199,13 @@
         aria-label="YouTube URL"
         autofocus
       />
-      <button id="watchBtn" class="btn" type="button" aria-label="Watch video">Watch</button>
-      <button id="downloadBtn" class="btn secondary" type="button" aria-label="Download embed HTML">Download</button>
+      <button id="watchBtn" type="button" aria-label="Watch video">Watch</button>
     </div>
 
-    <div id="hint" class="hint">
-      Paste a YouTube URL and press <b>Watch</b> (or hit <kbd>Enter</kbd>).
-    </div>
+    <div id="hint" class="hint">Paste a YouTube URL and press <b>Watch</b> (or hit <kbd>Enter</kbd>).</div>
     <div id="error" class="error">Sorry—couldn’t find a valid YouTube video ID in that link.</div>
-    <div id="ok" class="ok">Embed HTML downloaded.</div>
 
-    <!-- 16:9 player (initial placeholder ID Zy4oPoCDU4I; replaced when you press Watch) -->
+    <!-- Small 16:9 box; initial SRC contains Zy4oPoCDU4I and will be replaced -->
     <div class="player-wrap">
       <iframe
         id="player"
@@ -135,34 +216,36 @@
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         referrerpolicy="strict-origin-when-cross-origin"
-        allowfullscreen
-      ></iframe>
+        allowfullscreen>
+      </iframe>
     </div>
 
-    <div class="row">
-      <div class="meta">Current video ID: <code id="vidId">Zy4oPoCDU4I</code></div>
-      <button id="copyEmbedBtn" class="btn secondary" type="button" aria-label="Copy embed HTML">Copy Embed</button>
-      <button id="openYTBtn" class="btn secondary" type="button" aria-label="Open on YouTube">Open on YouTube</button>
-    </div>
-
-    <div class="hint" style="margin-top:8px;">
-      <b>Note:</b> This app provides a safe <em>embed</em> download only.
-      It <b>does not download videos</b> (including movies), to respect rights and platform policies.
-    </div>
+    <div id="meta" class="meta">Current video ID: <code id="vidId">Zy4oPoCDU4I</code></div>
   </div>
 
   <script>
-    /** Extract a YouTube video ID from common URL types. */
+    /** Extract a YouTube video ID from various URL shapes.
+     * Accepts: https://www.youtube.com/watch?v=ID
+     *          https://youtu.be/ID
+     *          https://www.youtube.com/shorts/ID
+     *          https://www.youtube.com/embed/ID
+     * Also tolerates extra params (&t=30s, &list=..., etc.).
+     * Returns an 11-char ID or null.
+     */
     function extractYouTubeId(input) {
       if (!input) return null;
       const str = String(input).trim();
+
+      // If the user pasted just an ID, accept it if it matches the pattern.
       const idPattern = /^[a-zA-Z0-9_-]{11}$/;
       if (idPattern.test(str)) return str;
 
+      // Try URL parsing; if it fails, attempt manual fallbacks.
       let url;
       try {
         url = new URL(str);
       } catch {
+        // Not a full URL; maybe they omitted protocol.
         try {
           url = new URL("https://" + str);
         } catch {
@@ -170,40 +253,39 @@
         }
       }
 
-      // watch?v=ID
+      // 1) Typical watch URL: .../watch?v=ID
       const vParam = url.searchParams.get("v");
       if (vParam && idPattern.test(vParam)) return vParam;
 
-      // youtu.be/ID
+      // 2) youtu.be short URL: https://youtu.be/ID
       if (/^(.+\.)?youtu\.be$/i.test(url.hostname)) {
         const seg = url.pathname.split("/").filter(Boolean)[0];
         if (seg && idPattern.test(seg)) return seg;
       }
 
-      // /embed/ID
+      // 3) /embed/ID
       const embedMatch = url.pathname.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
       if (embedMatch) return embedMatch[1];
 
-      // /shorts/ID
+      // 4) /shorts/ID
       const shortsMatch = url.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
       if (shortsMatch) return shortsMatch[1];
 
-      // Fallback: first 11-char token that looks like an ID
+      // 5) Fallback: search anywhere in the URL path/query for an 11-char ID
       const anyMatch = str.match(/[a-zA-Z0-9_-]{11}/g);
       if (anyMatch) return anyMatch[0];
 
       return null;
     }
 
-    function currentId() {
-      return document.getElementById("vidId").textContent.trim();
-    }
-
     function setVideoById(id) {
       const iframe = document.getElementById("player");
       const metaSpan = document.getElementById("vidId");
+
+      // Replace Zy4oPoCDU4I with the new ID and autoplay.
       const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
-      iframe.src = src; // reload and play
+      iframe.src = src; // Reloads the frame and starts playing (autoplay).
+
       metaSpan.textContent = id;
     }
 
@@ -211,99 +293,123 @@
       const input = document.getElementById("ytUrl");
       const error = document.getElementById("error");
       const hint = document.getElementById("hint");
-      const ok = document.getElementById("ok");
 
-      ok.style.display = "none";
       const id = extractYouTubeId(input.value);
       if (!id) {
         error.style.display = "block";
         hint.style.display = "none";
         return;
       }
+
       error.style.display = "none";
       hint.style.display = "none";
       setVideoById(id);
     }
 
-    // Safe "download": produce a tiny HTML file with the embed iframe.
-    function downloadEmbedHtml() {
-      const id = currentId();
-      const error = document.getElementById("error");
-      const ok = document.getElementById("ok");
-      error.style.display = "none";
-      ok.style.display = "none";
-
-      if (!id || !/^[a-zA-Z0-9_-]{11}$/.test(id)) {
-        error.textContent = "No valid video selected to create embed.";
-        error.style.display = "block";
-        return;
-      }
-
-      // Create a minimal, privacy-enhanced embed HTML snippet
-      const snippet = [
-        "<!-- YouTube privacy‑enhanced embed (no-cookie) -->",
-        `<iframe width="1162" height="558" src="https://www.youtube-nocookie.com/embed/${id}"`,
-        `  title="YouTube video" frameborder="0"`,
-        `  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"`,
-        `  referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`,
-        ""
-      ].join("\n");
-
-      const htmlDoc = [
-        "<!doctype html>",
-        "<html><head><meta charset='utf-8'><title>Embed</title></head><body>",
-        snippet,
-        "</body></html>"
-      ].join("\n");
-
-      const blob = new Blob([htmlDoc], { type: "text/html;charset=utf-8" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `embed-${id}.html`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(a.href);
-
-      ok.textContent = "Embed HTML downloaded.";
-      ok.style.display = "block";
-    }
-
-    // Copy current embed HTML to clipboard (convenience).
-    async function copyEmbedToClipboard() {
-      const id = currentId();
-      if (!id) return;
-      const snippet = `<iframe width="1162" height="558" src="https://www.youtube-nocookie.com/embed/${id}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
-      try {
-        await navigator.clipboard.writeText(snippet);
-        const ok = document.getElementById("ok");
-        ok.textContent = "Embed HTML copied to clipboard.";
-        ok.style.display = "block";
-      } catch {
-        const error = document.getElementById("error");
-        error.textContent = "Clipboard blocked by browser permissions.";
-        error.style.display = "block";
-      }
-    }
-
-    // Open the canonical watch URL in a new tab (users with YouTube Premium can use the official Download feature there).
-    function openOnYouTube() {
-      const id = currentId();
-      if (!id) return;
-      window.open(`https://www.youtube.com/watch?v=${id}`, "_blank", "noopener,noreferrer");
-    }
-
-    // Hook up events
+    // Hook up UI events
     document.getElementById("watchBtn").addEventListener("click", handleWatch);
-    document.getElementById("downloadBtn").addEventListener("click", downloadEmbedHtml);
-    document.getElementById("copyEmbedBtn").addEventListener("click", copyEmbedToClipboard);
-    document.getElementById("openYTBtn").addEventListener("click", openOnYouTube);
     document.getElementById("ytUrl").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         handleWatch();
       }
     });
+
+    // Optional: Improve paste UX (trim spaces)
+    document.getElementById("ytUrl").addEventListener("paste", (e) => {
+      requestAnimationFrame(() => {
+        const el = e.target;
+        el.value = el.value.trim();
+      });
+    });
+
+    /* ---------- Snow effect (Canvas) ---------- */
+    (function initSnow() {
+      const canvas = document.getElementById('snowCanvas');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let width, height, dpr, flakes = [], running = false, rafId = 0;
+
+      function rand(min, max) { return Math.random() * (max - min) + min; }
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2); // cap for perf
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        seedFlakes();
+      }
+
+      function seedFlakes() {
+        // Density scales with area but capped to stay lightweight
+        const baseCount = Math.round((width * height) / 14000);
+        const count = Math.max(40, Math.min(baseCount, 160));
+        flakes = [];
+        for (let i = 0; i < count; i++) {
+          const r = rand(0.6, 2.2);              // radius
+          flakes.push({
+            x: rand(0, width),
+            y: rand(-height, height),
+            r,
+            vy: rand(0.25, 0.8) + r * 0.05,      // fall speed
+            vx: rand(-0.15, 0.15),               // drift
+            a: rand(0, Math.PI * 2),             // angle for sway
+            va: rand(0.003, 0.01),               // angular velocity
+            o: rand(0.35, 0.9)                   // opacity
+          });
+        }
+      }
+
+      bottom/side
+          if (f.y - f.r > height) {
+            f.y = -rand(5, 40);
+            f.x = rand(0, width);
+          }
+          if (f.x < -10) f.x = width + 10;
+          if (f.x > width + 10) f.x = -10;
+
+          ctx.globalAlpha = f.o;
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        rafId = requestAnimationFrame(draw);
+      }
+
+      function start() {
+        if (running) return;
+        running = true;
+        rafId = requestAnimationFrame(draw);
+      }
+
+      function stop() {
+        running = false;
+        cancelAnimationFrame(rafId);
+        ctx.clearRect(0, 0, width, height);
+      }
+
+      resize();
+      window.addEventListener('resize', resize, { passive: true });
+
+      // Respect reduced motion
+      if (mediaQuery.matches) {
+        stop();
+      } else {
+        start();
+      }
+      mediaQuery.addEventListener('change', (e) => {
+        if (e.matches) stop(); else start();
+      });
+    })();
+    /* -------- end snow -------- */
   </script>
 </body>
 </html>
