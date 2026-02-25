@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,9 +28,10 @@
       background: linear-gradient(120deg, var(--bg1), var(--bg2), var(--bg3), var(--bg4));
       background-size: 300% 300%;
       animation: bgShift 28s ease-in-out infinite;
+      overflow-x: hidden;
     }
 
-    /* Soft radial glow overlay behind content for depth */
+    /* Soft radial glow overlay */
     body::before {
       content: "";
       position: fixed;
@@ -41,7 +41,7 @@
         radial-gradient(700px 500px at 90% 20%, rgba(99,102,241,0.14), rgba(99,102,241,0) 60%),
         radial-gradient(900px 600px at 50% 120%, rgba(30,58,138,0.25), rgba(30,58,138,0) 60%);
       pointer-events: none;
-      z-index: 0;
+      z-index: -1; /* behind video */
     }
 
     @keyframes bgShift {
@@ -50,17 +50,31 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* Snow canvas sits above background, below UI */
+    /* Background video (behind snow and content) */
+    #bgVideo {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.35) saturate(1.1); /* keep UI readable */
+      z-index: 0;
+      pointer-events: none;    /* unclickable */
+      user-select: none;       /* unselectable */
+      -webkit-user-drag: none; /* prevent drag ghost */
+    }
+
+    /* Snow canvas sits above background video, below UI */
     #snowCanvas {
       position: fixed;
       inset: 0;
-      z-index: 0;
-      pointer-events: none; /* never blocks clicks */
+      z-index: 1;
+      pointer-events: none;
     }
 
     .wrap {
       position: relative;
-      z-index: 1; /* Above snow */
+      z-index: 2; /* Above snow & video */
       max-width: 720px;
       margin: 6vh auto;
       padding: 24px;
@@ -140,7 +154,7 @@
       text-shadow: 0 1px 6px rgba(0,0,0,0.25);
     }
 
-    /* 16:9 responsive player box (kept small-ish) */
+    /* 16:9 responsive player box */
     .player-wrap {
       width: min(560px, 100%);
       aspect-ratio: 16 / 9;
@@ -168,6 +182,27 @@
       text-shadow: 0 1px 6px rgba(0,0,0,0.35);
     }
 
+    /* Audio toggle button (top-right corner) */
+    .audio-toggle {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 3; /* above everything */
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(15,23,42,0.7);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 30px rgba(2,6,23,0.45);
+      font-weight: 700;
+      line-height: 1;
+      transition: filter .15s ease, transform .05s ease;
+    }
+    .audio-toggle:hover { filter: brightness(1.08); }
+    .audio-toggle:active { transform: translateY(1px); }
+
     @media (max-width: 480px) {
       .wrap { padding: 16px; }
       .controls { flex-direction: column; }
@@ -184,8 +219,26 @@
   </style>
 </head>
 <body>
+  <!-- Background video (autoplay, loop, unselectable, starts muted) -->
+  <video
+    id="bgVideo"
+    autoplay
+    loop
+    muted
+    playsinline
+    preload="auto"
+    aria-hidden="true"
+    tabindex="-1"
+    draggable="false"
+  >
+    <source src="./Sonic%20Mega%20Collection%20Plus%20Extra%20Menu%20Theme%20and%20Backgound%20-%20Classic%20Sonic%20Saturn%20%28360p%2C%20h264%29.mp4" type="video/mp4" />
+  </video>
+
   <!-- Snow canvas (visual only) -->
   <canvas id="snowCanvas" aria-hidden="true"></canvas>
+
+  <!-- Audio toggle for background video -->
+  <button id="bgAudioToggle" class="audio-toggle" type="button" aria-label="Toggle background video sound" title="Toggle background video sound" aria-pressed="false">🔇</button>
 
   <div class="wrap">
     <h1>Watch a YouTube video (privacy‑enhanced embed)</h1>
@@ -205,7 +258,7 @@
     <div id="hint" class="hint">Paste a YouTube URL and press <b>Watch</b> (or hit <kbd>Enter</kbd>).</div>
     <div id="error" class="error">Sorry—couldn’t find a valid YouTube video ID in that link.</div>
 
-    <!-- Small 16:9 box; initial SRC contains Zy4oPoCDU4I and will be replaced -->
+    <!-- 16:9 player; initial ID Zy4oPoCDU4I will be replaced -->
     <div class="player-wrap">
       <iframe
         id="player"
@@ -225,11 +278,8 @@
 
   <script>
     /** Extract a YouTube video ID from various URL shapes.
-     * Accepts: https://www.youtube.com/watch?v=ID
-     *          https://youtu.be/ID
-     *          https://www.youtube.com/shorts/ID
-     *          https://www.youtube.com/embed/ID
-     * Also tolerates extra params (&t=30s, &list=..., etc.).
+     * Accepts: watch?v=ID, youtu.be/ID, /embed/ID, /shorts/ID.
+     * Tolerates extra params (&t=30s, &list=..., etc.).
      * Returns an 11-char ID or null.
      */
     function extractYouTubeId(input) {
@@ -245,7 +295,6 @@
       try {
         url = new URL(str);
       } catch {
-        // Not a full URL; maybe they omitted protocol.
         try {
           url = new URL("https://" + str);
         } catch {
@@ -271,7 +320,7 @@
       const shortsMatch = url.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
       if (shortsMatch) return shortsMatch[1];
 
-      // 5) Fallback: search anywhere in the URL path/query for an 11-char ID
+      // 5) Fallback: first 11-char token that looks like an ID
       const anyMatch = str.match(/[a-zA-Z0-9_-]{11}/g);
       if (anyMatch) return anyMatch[0];
 
@@ -281,11 +330,8 @@
     function setVideoById(id) {
       const iframe = document.getElementById("player");
       const metaSpan = document.getElementById("vidId");
-
-      // Replace Zy4oPoCDU4I with the new ID and autoplay.
       const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
       iframe.src = src; // Reloads the frame and starts playing (autoplay).
-
       metaSpan.textContent = id;
     }
 
@@ -306,7 +352,7 @@
       setVideoById(id);
     }
 
-    // Hook up UI events
+    // Hook up UI events for YouTube loader
     document.getElementById("watchBtn").addEventListener("click", handleWatch);
     document.getElementById("ytUrl").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -314,14 +360,47 @@
         handleWatch();
       }
     });
-
-    // Optional: Improve paste UX (trim spaces)
     document.getElementById("ytUrl").addEventListener("paste", (e) => {
       requestAnimationFrame(() => {
         const el = e.target;
         el.value = el.value.trim();
       });
     });
+
+    /* ---------- Background video audio toggle ---------- */
+    (function bgAudio() {
+      const video = document.getElementById('bgVideo');
+      const btn = document.getElementById('bgAudioToggle');
+
+      // Ensure correct initial state (muted, safe for autoplay)
+      video.muted = true;
+      video.defaultMuted = true; // helps on Safari
+      video.volume = 1.0;        // full volume when unmuted
+
+      function updateButton() {
+        const isMuted = video.muted || video.volume === 0;
+        btn.textContent = isMuted ? '🔇' : '🔊';
+        btn.setAttribute('aria-pressed', String(!isMuted));
+        btn.title = isMuted ? 'Unmute background video' : 'Mute background video';
+      }
+
+      async function toggleAudio() {
+        try {
+          // Toggle mute
+          video.muted = !video.muted;
+
+          // If unmuting, attempt to play (some browsers require user gesture—which this click is)
+          if (!video.muted && video.paused) {
+            await video.play().catch(() => {});
+          }
+        } finally {
+          updateButton();
+        }
+      }
+
+      btn.addEventListener('click', toggleAudio);
+      updateButton();
+    })();
 
     /* ---------- Snow effect (Canvas) ---------- */
     (function initSnow() {
@@ -347,7 +426,7 @@
       }
 
       function seedFlakes() {
-        // Density scales with area but capped to stay lightweight
+        // Density scales with area but is capped to stay lightweight
         const baseCount = Math.round((width * height) / 14000);
         const count = Math.max(40, Math.min(baseCount, 160));
         flakes = [];
@@ -366,7 +445,18 @@
         }
       }
 
-      bottom/side
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#fff';
+
+        for (let i = 0; i < flakes.length; i++) {
+          const f = flakes[i];
+          // Horizontal sway
+          f.a += f.va;
+          f.x += Math.sin(f.a) * 0.4 + f.vx;
+          f.y += f.vy;
+
+          // Wrap to top when leaving bottom/side
           if (f.y - f.r > height) {
             f.y = -rand(5, 40);
             f.x = rand(0, width);
@@ -413,3 +503,4 @@
   </script>
 </body>
 </html>
+``
