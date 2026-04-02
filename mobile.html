@@ -4,57 +4,45 @@
   <meta charset="utf-8" />
   <title>TubeV2 Mobile</title>
 
-  <!-- FORCE MOBILE SCALING ON ALL DEVICES -->
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-  />
+  <!-- Force proper scaling -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    /* ===== RESET ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    /* ===== PAGE BACKGROUND (BLACK BARS) ===== */
     html, body {
+      margin: 0;
       width: 100%;
       height: 100%;
       background: #000;
-      color: #fff;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      overflow: hidden;
-    }
-
-    /* ===== OPTIONAL BACKGROUND VIDEO ===== */
-    #bgVideo {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.25;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    /* ===== MAIN MOBILE LAYOUT (ALWAYS USED) ===== */
-    .mobile-root {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 12px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
 
-    /* 16:9 EMBED — FULL WIDTH, MOBILE STYLE */
+    /* ===== FAKE MOBILE SCREEN ===== */
+    .mobile-screen {
+      width: 390px;          /* iPhone width */
+      height: 844px;         /* iPhone height */
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Scale down on very small screens (real phones) */
+    @media (max-width: 420px) {
+      .mobile-screen {
+        width: 100vw;
+        height: 100vh;
+      }
+    }
+
+    /* ===== VIDEO WRAPPER ===== */
     .player-wrap {
       width: 100%;
-      max-width: 100%;
       aspect-ratio: 16 / 9;
       background: #000;
     }
@@ -62,20 +50,21 @@
     iframe {
       width: 100%;
       height: 100%;
-      border: none;
+      border: 0;
       display: block;
+      background: #000;
     }
 
-    /* BACK BUTTON */
+    /* ===== BACK BUTTON ===== */
     .back-btn {
-      position: fixed;
-      top: 12px;
-      left: 12px;
+      position: absolute;
+      top: 10px;
+      left: 10px;
       z-index: 2;
       padding: 8px 12px;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.75);
       color: #fff;
-      border: 1px solid rgba(255,255,255,0.35);
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
@@ -86,34 +75,23 @@
 
 <body>
 
-  <!-- OPTIONAL AMBIENT BACKGROUND VIDEO -->
-  <video
-    id="bgVideo"
-    autoplay
-    loop
-    muted
-    playsinline
-    preload="auto"
-  >
-    <source
-      src="https://github.com/DoggyGamesShow123/tubev2/raw/refs/heads/main/Sonic%20Mega%20Collection%20Plus%20Extra%20Menu%20Theme%20and%20Backgound%20-%20Classic%20Sonic%20Saturn%20(360p,%20h264).mp4"
-      type="video/mp4"
-    />
-  </video>
+  <!-- MOBILE DEVICE FRAME -->
+  <div class="mobile-screen">
 
-  <!-- BACK TO DESKTOP -->
-  <button
-    class="back-btn"
-    onclick="location.href='index.html'"
-    aria-label="Back to desktop site"
-    title="Back to desktop site"
- y; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    <!-- BACK TO DESKTOP -->
+    <button
+      class="back-btn"
+      onclick="location.href='index.html'"
+      aria-label="Back to desktop"
+      title="Back to desktop"
+   "https://www.youtube-nocookie.com/embed/Zy4oPoCDU4I?autoplay=1&playsinline=1&rel=0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen
         referrerpolicy="strict-origin-when-cross-origin"
       ></iframe>
     </div>
+
   </div>
 
 </body>
 </html>
-``
