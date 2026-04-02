@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>YouTube Watch (nocookie embed)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     :root {
       --accent: #2563eb;
@@ -16,49 +17,37 @@
       --muted: #94a3b8;
       --error: #ef4444;
     }
+
     * { box-sizing: border-box; }
+
     html, body {
       height: 100%;
       margin: 0;
       color: var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: linear-gradient(120deg, var(--bg1), var(--bg2), var(--bg3), var(--bg4));
       background-size: 300% 300%;
       animation: bgShift 28s ease-in-out infinite;
       overflow-x: hidden;
     }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: -20%;
-      background:
-        radial-gradient(600px 400px at 10% -10%, rgba(59,130,246,0.18), rgba(59,130,246,0) 60%),
-        radial-gradient(700px 500px at 90% 20%, rgba(99,102,241,0.14), rgba(99,102,241,0) 60%),
-        radial-gradient(900px 600px at 50% 120%, rgba(30,58,138,0.25), rgba(30,58,138,0) 60%);
-      pointer-events: none;
-      z-index: -1;
-    }
+
     @keyframes bgShift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /* Background video */
     #bgVideo {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      filter: brightness(0.35) saturate(1.1);
+      filter: brightness(0.35);
       z-index: 0;
       pointer-events: none;
-      user-select: none;
-      -webkit-user-drag: none;
     }
 
-    /* Snow canvas */
     #snowCanvas {
       position: fixed;
       inset: 0;
@@ -73,147 +62,80 @@
       margin: 6vh auto;
       padding: 24px;
     }
+
     h1 {
       font-size: 1.25rem;
-      margin: 0 0 12px 0;
+      margin-bottom: 12px;
       font-weight: 600;
-      letter-spacing: 0.2px;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.35);
     }
+
     .controls {
       display: flex;
       gap: 10px;
-      align-items: center;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-      border: 1px solid rgba(148,163,184,0.22);
+      background: rgba(255,255,255,0.05);
       border-radius: 14px;
       padding: 10px;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.06),
-        0 8px 30px rgba(2,6,23,0.55),
-        0 2px 8px rgba(2,6,23,0.2);
-      backdrop-filter: blur(6px);
     }
-    .controls input[type="url"] {
+
+    .controls input {
       flex: 1;
-      padding: 12px 14px;
-      border: 1px solid rgba(148,163,184,0.28);
-      background: rgba(15,23,42,0.85);
-      color: var(--text);
+      padding: 12px;
       border-radius: 10px;
-      outline: none;
+      border: none;
+      background: #0f172a;
+      color: #fff;
       font-size: 14px;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .controls input[type="url"]::placeholder { color: var(--muted); }
-    .controls input[type="url"]:focus {
-      border-color: rgba(37,99,235,0.7);
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
-    }
+
     .controls button {
       padding: 12px 16px;
-      background: linear-gradient(180deg, #2f6fe9, #2056c7);
-      color: white;
-      border: none;
       border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: #fff;
       font-weight: 600;
-      letter-spacing: 0.2px;
       cursor: pointer;
-      white-space: nowrap;
-      transition: transform 0.05s ease, box-shadow 0.15s ease, filter 0.15s ease;
-      box-shadow: 0 8px 20px rgba(37,99,235,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
-    }
-    .controls button:hover {
-      filter: brightness(1.05);
-      box-shadow: 0 12px 26px rgba(37,99,235,0.32), inset 0 1px 0 rgba(255,255,255,0.22);
-    }
-    .controls button:active { transform: translateY(1px); }
-
-    .hint {
-      margin: 8px 4px 16px 4px;
-      font-size: 13px;
-      color: var(--muted);
-      text-shadow: 0 1px 6px rgba(0,0,0,0.35);
-    }
-    .error {
-      margin: 8px 4px 0 4px;
-      font-size: 13px;
-      color: var(--error);
-      display: none;
-      text-shadow: 0 1px 6px rgba(0,0,0,0.25);
     }
 
     .player-wrap {
-      width: min(560px, 100%);
+      margin-top: 16px;
       aspect-ratio: 16 / 9;
       border-radius: 16px;
       overflow: hidden;
-      border: 1px solid rgba(148,163,184,0.22);
       background: #000;
-      box-shadow:
-        0 20px 50px rgba(2,6,23,0.65),
-        0 8px 20px rgba(2,6,23,0.35);
-      margin-top: 16px;
     }
-    .player-wrap iframe {
+
+    iframe {
       width: 100%;
       height: 100%;
-      border: 0;
-      display: block;
+      border: none;
     }
 
-    .meta {
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      user-select: text;
-      text-shadow: 0 1px 6px rgba(0,0,0,0.35);
-    }
-
-    /* ✅ NEW: top-right button row (mobile toggle + audio toggle) */
+    /* TOP‑RIGHT BUTTONS */
     .corner-controls {
       position: fixed;
       top: 14px;
       right: 14px;
-      z-index: 3;
       display: flex;
       gap: 10px;
-      align-items: center;
+      z-index: 3;
     }
+
     .corner-btn {
-      border: 1px solid rgba(255,255,255,0.22);
-      background: rgba(15,23,42,0.7);
-      color: #fff;
       padding: 10px 12px;
       border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 16px;
       cursor: pointer;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 10px 30px rgba(2,6,23,0.45);
-      font-weight: 700;
-      line-height: 1;
-      transition: filter .15s ease, transform .05s ease;
-      user-select: none;
-    }
-    .corner-btn:hover { filter: brightness(1.08); }
-    .corner-btn:active { transform: translateY(1px); }
-
-    @media (max-width: 480px) {
-      .wrap { padding: 16px; }
-      .controls { flex-direction: column; }
-      .controls button { width: 100%; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html, body {
-        animation: none !important;
-        background-size: auto !important;
-      }
     }
   </style>
 </head>
 
 <body>
-  <!-- Background video -->
+
+  <!-- BACKGROUND VIDEO -->
   <video
     id="bgVideo"
     autoplay
@@ -221,316 +143,64 @@
     muted
     playsinline
     preload="auto"
-    aria-hidden="true"
-    tabindex="-1"
-    draggable="false"
   >
-    ./Sonic%20Mega%20Collection%20Plus%20Extra%20Menu%20Theme%20and%20Backgound%20-%20Classic%20Sonic%20Saturn%20%28360p%2C%20h264%29.mp4
+    <source src="./Sonic Mega Collection Plus Extra Menu Theme and Backgound - Classic Sonic Saturn (360p, h264).mp4">
   </video>
 
-  <!-- Snow canvas -->
-  <canvas id="snowCanvas" aria-hidden="true"></canvas>
+  <canvas id="snowCanvas"></canvas>
 
-  <!-- ✅ NEW: Top-right buttons (Mobile embed + Background audio) -->
-  <div class="corner-controls" aria-label="Corner controls">
+  <!-- TOP RIGHT BUTTONS -->
+  <div class="corner-controls">
+    <!-- 📱 REDIRECT ONLY -->
     <button
-      id="mobileEmbedToggle"
       class="corner-btn"
-      type="button"
-      aria-label="Toggle mobile embed"
-      title="Load mobile embed"
-      aria-pressed="false"
-    >📱</button>
-
-    <button
-      id="bgAudioToggle"
-      class="corner-btn"
-      type="button"
-      aria-label="Toggle background video sound"
-      title="Toggle background video sound"
-      aria-pressed="false"
+      onclick="location.href='https://doggygamesshow123.github.io/tubev2/mobile.html'"
+      title="Open mobile version"
+      aria-labelkground audio"
     >🔇</button>
   </div>
 
   <div class="wrap">
-    <h1>Watch a YouTube video (privacy‑enhanced embed)</h1>
+    <h1>Watch a YouTube video (privacy‑enhanced)</h1>
 
     <div class="controls">
-      <input
-        id="ytUrl"
-        type="url"
-        inputmode="url"
-        placeholder="Paste a YouTube link (e.g., https://www.youtube.com/watch?v=LXb3EKWsInQ)"
-        aria-label="YouTube URL"
-        autofocus
-      />
-      <button id="watchBtn" type="button" aria-label="Watch video">Watch</button>
+      <input id="ytUrl" placeholder="Paste YouTube link or ID">
+      <button onclick="watch()">Watch</button>
     </div>
-
-    <div id="hint" class="hint">Paste a YouTube URL and press <b>Watch</b> (or hit <kbd>Enter</kbd>).</div>
-    <div id="error" class="error">Sorry—couldn’t find a valid YouTube video ID in that link.</div>
 
     <div class="player-wrap">
-      https://www.youtube-nocookie.com/embed/Zy4oPoCDU4I
-      </iframe>
-    </div>
-
-    <div id="meta" class="meta">
-      Current video ID: <code id="vidId">Zy4oPoCDU4I</code>
-      &nbsp;•&nbsp;
-      Mode: <code id="modeLabel">nocookie</code>
+      <iframe
+        id="player"
+        src="https://www.youtube-nocookie.com/embed/Zy4oPoCDU4I"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen
+      ></iframe>
     </div>
   </div>
 
   <script>
-    /** Extract a YouTube video ID from various URL shapes.
-     * Accepts: watch?v=ID, youtu.be/ID, /embed/ID, /shorts/ID.
-     * Tolerates extra params (&t=30s, &list=..., etc.).
-     * Returns an 11-char ID or null.
-     */
-    function extractYouTubeId(input) {
-      if (!input) return null;
-      const str = String(input).trim();
-      const idPattern = /^[a-zA-Z0-9_-]{11}$/;
-      if (idPattern.test(str)) return str;
-
-      let url;
-      try {
-        url = new URL(str);
-      } catch {
-        try {
-          url = new URL("https://" + str);
-        } catch {
-          return null;
-        }
-      }
-
-      const vParam = url.searchParams.get("v");
-      if (vParam && idPattern.test(vParam)) return vParam;
-
-      if (/^(.+\.)?youtu\.be$/i.test(url.hostname)) {
-        const seg = url.pathname.split("/").filter(Boolean)[0];
-        if (seg && idPattern.test(seg)) return seg;
-      }
-
-      const embedMatch = url.pathname.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
-      if (embedMatch) return embedMatch[1];
-
-      const shortsMatch = url.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
-      if (shortsMatch) return shortsMatch[1];
-
-      const anyMatch = str.match(/[a-zA-Z0-9_-]{11}/g);
-      if (anyMatch) return anyMatch[0];
-
-      return null;
+    function extractId(url) {
+      const m = url.match(/[a-zA-Z0-9_-]{11}/);
+      return m ? m[0] : null;
     }
 
-    /* ✅ NEW: Embed mode switcher (nocookie vs mobile) */
-    const STORAGE_KEY_MOBILE = "tubev2_useMobileEmbed";
-    let useMobileEmbed = localStorage.getItem(STORAGE_KEY_MOBILE) === "1";
-
-    let currentVideoId = (document.getElementById("vidId")?.textContent || "Zy4oPoCDU4I").trim();
-
-    function buildEmbedSrc(id) {
-      const base = useMobileEmbed
-        ? "https://m.youtube.com/embed/"
-        : "https://www.youtube-nocookie.com/embed/";
-      // playsinline helps iOS stay inline; autoplay may still be blocked depending on device settings.
-      return `${base}${id}?autoplay=1&rel=0&playsinline=1`;
+    function watch() {
+      const v = extractId(document.getElementById("ytUrl").value);
+      if (v) {
+        document.getElementById("player").src =
+          "https://www.youtube-nocookie.com/embed/" + v + "?autoplay=1&rel=0";
+      }
     }
 
-    function updateModeLabel() {
-      const mode = document.getElementById("modeLabel");
-      if (mode) mode.textContent = useMobileEmbed ? "mobile" : "nocookie";
-    }
+    /* Background audio toggle */
+    const video = document.getElementById("bgVideo");
+    const btn = document.getElementById("bgAudioToggle");
 
-    function setVideoById(id) {
-      currentVideoId = id;
-      const iframe = document.getElementById("player");
-      const metaSpan = document.getElementById("vidId");
-      iframe.src = buildEmbedSrc(id);
-      metaSpan.textContent = id;
-      updateModeLabel();
-    }
-
-    function handleWatch() {
-      const input = document.getElementById("ytUrl");
-      const error = document.getElementById("error");
-      const hint = document.getElementById("hint");
-      const id = extractYouTubeId(input.value);
-
-      if (!id) {
-        error.style.display = "block";
-        hint.style.display = "none";
-        return;
-      }
-
-      error.style.display = "none";
-      hint.style.display = "none";
-      setVideoById(id);
-    }
-
-    document.getElementById("watchBtn").addEventListener("click", handleWatch);
-
-    document.getElementById("ytUrl").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleWatch();
-      }
-    });
-
-    document.getElementById("ytUrl").addEventListener("paste", (e) => {
-      requestAnimationFrame(() => {
-        const el = e.target;
-        el.value = el.value.trim();
-      });
-    });
-
-    /* ✅ NEW: Mobile embed toggle button */
-    (function initMobileEmbedToggle() {
-      const btn = document.getElementById("mobileEmbedToggle");
-
-      function updateButton() {
-        // If currently using mobile, show desktop icon to switch back.
-        btn.textContent = useMobileEmbed ? "🖥️" : "📱";
-        btn.title = useMobileEmbed ? "Switch to privacy-enhanced embed" : "Load mobile embed";
-        btn.setAttribute("aria-pressed", String(useMobileEmbed));
-        updateModeLabel();
-      }
-
-      btn.addEventListener("click", () => {
-        useMobileEmbed = !useMobileEmbed;
-        localStorage.setItem(STORAGE_KEY_MOBILE, useMobileEmbed ? "1" : "0");
-        // Reload the current video in the selected embed mode:
-        document.getElementById("player").src = buildEmbedSrc(currentVideoId);
-        updateButton();
-      });
-
-      // Apply stored preference on load (refresh iframe to match mode)
-      document.getElementById("player").src = buildEmbedSrc(currentVideoId);
-      updateButton();
-    })();
-
-    /* ---------- Background video audio toggle ---------- */
-    (function bgAudio() {
-      const video = document.getElementById("bgVideo");
-      const btn = document.getElementById("bgAudioToggle");
-
-      video.muted = true;
-      video.defaultMuted = true;
-      video.volume = 1.0;
-
-      function updateButton() {
-        const isMuted = video.muted || video.volume === 0;
-        btn.textContent = isMuted ? "🔇" : "🔊";
-        btn.setAttribute("aria-pressed", String(!isMuted));
-        btn.title = isMuted ? "Unmute background video" : "Mute background video";
-      }
-
-      async function toggleAudio() {
-        try {
-          video.muted = !video.muted;
-          if (!video.muted && video.paused) {
-            await video.play().catch(() => {});
-          }
-        } finally {
-          updateButton();
-        }
-      }
-
-      btn.addEventListener("click", toggleAudio);
-      updateButton();
-    })();
-
-    /* ---------- Snow effect (Canvas) ---------- */
-    (function initSnow() {
-      const canvas = document.getElementById("snowCanvas");
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-      let width, height, dpr, flakes = [], running = false, rafId = 0;
-
-      function rand(min, max) { return Math.random() * (max - min) + min; }
-
-      function resize() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
-        width = window.innerWidth;
-        height = window.innerHeight;
-        canvas.width = Math.floor(width * dpr);
-        canvas.height = Math.floor(height * dpr);
-        canvas.style.width = width + "px";
-        canvas.style.height = height + "px";
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        seedFlakes();
-      }
-
-      function seedFlakes() {
-        const baseCount = Math.round((width * height) / 14000);
-        const count = Math.max(40, Math.min(baseCount, 160));
-        flakes = [];
-        for (let i = 0; i < count; i++) {
-          const r = rand(0.6, 2.2);
-          flakes.push({
-            x: rand(0, width),
-            y: rand(-height, height),
-            r,
-            vy: rand(0.25, 0.8) + r * 0.05,
-            vx: rand(-0.15, 0.15),
-            a: rand(0, Math.PI * 2),
-            va: rand(0.003, 0.01),
-            o: rand(0.35, 0.9)
-          });
-        }
-      }
-
-      function draw() {
-        ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = "#fff";
-        for (let i = 0; i < flakes.length; i++) {
-          const f = flakes[i];
-          f.a += f.va;
-          f.x += Math.sin(f.a) * 0.4 + f.vx;
-          f.y += f.vy;
-
-          if (f.y - f.r > height) {
-            f.y = -rand(5, 40);
-            f.x = rand(0, width);
-          }
-          if (f.x < -10) f.x = width + 10;
-          if (f.x > width + 10) f.x = -10;
-
-          ctx.globalAlpha = f.o;
-          ctx.beginPath();
-          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        rafId = requestAnimationFrame(draw);
-      }
-
-      function start() {
-        if (running) return;
-        running = true;
-        rafId = requestAnimationFrame(draw);
-      }
-
-      function stop() {
-        running = false;
-        cancelAnimationFrame(rafId);
-        ctx.clearRect(0, 0, width, height);
-      }
-
-      resize();
-      window.addEventListener("resize", resize, { passive: true });
-
-      if (mediaQuery.matches) stop();
-      else start();
-
-      mediaQuery.addEventListener("change", (e) => {
-        if (e.matches) stop();
-        else start();
-      });
-    })();
+    btn.onclick = () => {
+      video.muted = !video.muted;
+      btn.textContent = video.muted ? "🔇" : "🔊";
+    };
   </script>
+
 </body>
 </html>
