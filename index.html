@@ -16,22 +16,17 @@
       --muted: #94a3b8;
       --error: #ef4444;
     }
-
     * { box-sizing: border-box; }
-
     html, body {
       height: 100%;
       margin: 0;
       color: var(--text);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-      /* Animated background gradient */
       background: linear-gradient(120deg, var(--bg1), var(--bg2), var(--bg3), var(--bg4));
       background-size: 300% 300%;
       animation: bgShift 28s ease-in-out infinite;
       overflow-x: hidden;
     }
-
-    /* Soft radial glow overlay */
     body::before {
       content: "";
       position: fixed;
@@ -41,30 +36,29 @@
         radial-gradient(700px 500px at 90% 20%, rgba(99,102,241,0.14), rgba(99,102,241,0) 60%),
         radial-gradient(900px 600px at 50% 120%, rgba(30,58,138,0.25), rgba(30,58,138,0) 60%);
       pointer-events: none;
-      z-index: -1; /* behind video */
+      z-index: -1;
     }
-
     @keyframes bgShift {
       0%   { background-position: 0% 50%; }
       50%  { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /* Background video (behind snow and content) */
+    /* Background video */
     #bgVideo {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      filter: brightness(0.35) saturate(1.1); /* keep UI readable */
+      filter: brightness(0.35) saturate(1.1);
       z-index: 0;
-      pointer-events: none;    /* unclickable */
-      user-select: none;       /* unselectable */
-      -webkit-user-drag: none; /* prevent drag ghost */
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
-    /* Snow canvas sits above background video, below UI */
+    /* Snow canvas */
     #snowCanvas {
       position: fixed;
       inset: 0;
@@ -74,12 +68,11 @@
 
     .wrap {
       position: relative;
-      z-index: 2; /* Above snow & video */
+      z-index: 2;
       max-width: 720px;
       margin: 6vh auto;
       padding: 24px;
     }
-
     h1 {
       font-size: 1.25rem;
       margin: 0 0 12px 0;
@@ -87,7 +80,6 @@
       letter-spacing: 0.2px;
       text-shadow: 0 2px 10px rgba(0,0,0,0.35);
     }
-
     .controls {
       display: flex;
       gap: 10px;
@@ -102,7 +94,6 @@
         0 2px 8px rgba(2,6,23,0.2);
       backdrop-filter: blur(6px);
     }
-
     .controls input[type="url"] {
       flex: 1;
       padding: 12px 14px;
@@ -119,7 +110,6 @@
       border-color: rgba(37,99,235,0.7);
       box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
     }
-
     .controls button {
       padding: 12px 16px;
       background: linear-gradient(180deg, #2f6fe9, #2056c7);
@@ -145,7 +135,6 @@
       color: var(--muted);
       text-shadow: 0 1px 6px rgba(0,0,0,0.35);
     }
-
     .error {
       margin: 8px 4px 0 4px;
       font-size: 13px;
@@ -154,7 +143,6 @@
       text-shadow: 0 1px 6px rgba(0,0,0,0.25);
     }
 
-    /* 16:9 responsive player box */
     .player-wrap {
       width: min(560px, 100%);
       aspect-ratio: 16 / 9;
@@ -182,12 +170,17 @@
       text-shadow: 0 1px 6px rgba(0,0,0,0.35);
     }
 
-    /* Audio toggle button (top-right corner) */
-    .audio-toggle {
+    /* ✅ NEW: top-right button row (mobile toggle + audio toggle) */
+    .corner-controls {
       position: fixed;
       top: 14px;
       right: 14px;
-      z-index: 3; /* above everything */
+      z-index: 3;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .corner-btn {
       border: 1px solid rgba(255,255,255,0.22);
       background: rgba(15,23,42,0.7);
       color: #fff;
@@ -199,9 +192,10 @@
       font-weight: 700;
       line-height: 1;
       transition: filter .15s ease, transform .05s ease;
+      user-select: none;
     }
-    .audio-toggle:hover { filter: brightness(1.08); }
-    .audio-toggle:active { transform: translateY(1px); }
+    .corner-btn:hover { filter: brightness(1.08); }
+    .corner-btn:active { transform: translateY(1px); }
 
     @media (max-width: 480px) {
       .wrap { padding: 16px; }
@@ -209,7 +203,6 @@
       .controls button { width: 100%; }
     }
 
-    /* Respect user motion preferences */
     @media (prefers-reduced-motion: reduce) {
       html, body {
         animation: none !important;
@@ -218,8 +211,9 @@
     }
   </style>
 </head>
+
 <body>
-  <!-- Background video (autoplay, loop, unselectable, starts muted) -->
+  <!-- Background video -->
   <video
     id="bgVideo"
     autoplay
@@ -231,14 +225,32 @@
     tabindex="-1"
     draggable="false"
   >
-    <source src="./Sonic%20Mega%20Collection%20Plus%20Extra%20Menu%20Theme%20and%20Backgound%20-%20Classic%20Sonic%20Saturn%20%28360p%2C%20h264%29.mp4" type="video/mp4" />
+    ./Sonic%20Mega%20Collection%20Plus%20Extra%20Menu%20Theme%20and%20Backgound%20-%20Classic%20Sonic%20Saturn%20%28360p%2C%20h264%29.mp4
   </video>
 
-  <!-- Snow canvas (visual only) -->
+  <!-- Snow canvas -->
   <canvas id="snowCanvas" aria-hidden="true"></canvas>
 
-  <!-- Audio toggle for background video -->
-  <button id="bgAudioToggle" class="audio-toggle" type="button" aria-label="Toggle background video sound" title="Toggle background video sound" aria-pressed="false">🔇</button>
+  <!-- ✅ NEW: Top-right buttons (Mobile embed + Background audio) -->
+  <div class="corner-controls" aria-label="Corner controls">
+    <button
+      id="mobileEmbedToggle"
+      class="corner-btn"
+      type="button"
+      aria-label="Toggle mobile embed"
+      title="Load mobile embed"
+      aria-pressed="false"
+    >📱</button>
+
+    <button
+      id="bgAudioToggle"
+      class="corner-btn"
+      type="button"
+      aria-label="Toggle background video sound"
+      title="Toggle background video sound"
+      aria-pressed="false"
+    >🔇</button>
+  </div>
 
   <div class="wrap">
     <h1>Watch a YouTube video (privacy‑enhanced embed)</h1>
@@ -258,22 +270,16 @@
     <div id="hint" class="hint">Paste a YouTube URL and press <b>Watch</b> (or hit <kbd>Enter</kbd>).</div>
     <div id="error" class="error">Sorry—couldn’t find a valid YouTube video ID in that link.</div>
 
-    <!-- 16:9 player; initial ID Zy4oPoCDU4I will be replaced -->
     <div class="player-wrap">
-      <iframe
-        id="player"
-        width="560"
-        height="315"
-        src="https://www.youtube-nocookie.com/embed/Zy4oPoCDU4I"
-        title="Videoplayback"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"
-        allowfullscreen>
+      https://www.youtube-nocookie.com/embed/Zy4oPoCDU4I
       </iframe>
     </div>
 
-    <div id="meta" class="meta">Current video ID: <code id="vidId">Zy4oPoCDU4I</code></div>
+    <div id="meta" class="meta">
+      Current video ID: <code id="vidId">Zy4oPoCDU4I</code>
+      &nbsp;•&nbsp;
+      Mode: <code id="modeLabel">nocookie</code>
+    </div>
   </div>
 
   <script>
@@ -285,12 +291,9 @@
     function extractYouTubeId(input) {
       if (!input) return null;
       const str = String(input).trim();
-
-      // If the user pasted just an ID, accept it if it matches the pattern.
       const idPattern = /^[a-zA-Z0-9_-]{11}$/;
       if (idPattern.test(str)) return str;
 
-      // Try URL parsing; if it fails, attempt manual fallbacks.
       let url;
       try {
         url = new URL(str);
@@ -302,45 +305,60 @@
         }
       }
 
-      // 1) Typical watch URL: .../watch?v=ID
       const vParam = url.searchParams.get("v");
       if (vParam && idPattern.test(vParam)) return vParam;
 
-      // 2) youtu.be short URL: https://youtu.be/ID
       if (/^(.+\.)?youtu\.be$/i.test(url.hostname)) {
         const seg = url.pathname.split("/").filter(Boolean)[0];
         if (seg && idPattern.test(seg)) return seg;
       }
 
-      // 3) /embed/ID
       const embedMatch = url.pathname.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
       if (embedMatch) return embedMatch[1];
 
-      // 4) /shorts/ID
       const shortsMatch = url.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
       if (shortsMatch) return shortsMatch[1];
 
-      // 5) Fallback: first 11-char token that looks like an ID
       const anyMatch = str.match(/[a-zA-Z0-9_-]{11}/g);
       if (anyMatch) return anyMatch[0];
 
       return null;
     }
 
+    /* ✅ NEW: Embed mode switcher (nocookie vs mobile) */
+    const STORAGE_KEY_MOBILE = "tubev2_useMobileEmbed";
+    let useMobileEmbed = localStorage.getItem(STORAGE_KEY_MOBILE) === "1";
+
+    let currentVideoId = (document.getElementById("vidId")?.textContent || "Zy4oPoCDU4I").trim();
+
+    function buildEmbedSrc(id) {
+      const base = useMobileEmbed
+        ? "https://m.youtube.com/embed/"
+        : "https://www.youtube-nocookie.com/embed/";
+      // playsinline helps iOS stay inline; autoplay may still be blocked depending on device settings.
+      return `${base}${id}?autoplay=1&rel=0&playsinline=1`;
+    }
+
+    function updateModeLabel() {
+      const mode = document.getElementById("modeLabel");
+      if (mode) mode.textContent = useMobileEmbed ? "mobile" : "nocookie";
+    }
+
     function setVideoById(id) {
+      currentVideoId = id;
       const iframe = document.getElementById("player");
       const metaSpan = document.getElementById("vidId");
-      const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
-      iframe.src = src; // Reloads the frame and starts playing (autoplay).
+      iframe.src = buildEmbedSrc(id);
       metaSpan.textContent = id;
+      updateModeLabel();
     }
 
     function handleWatch() {
       const input = document.getElementById("ytUrl");
       const error = document.getElementById("error");
       const hint = document.getElementById("hint");
-
       const id = extractYouTubeId(input.value);
+
       if (!id) {
         error.style.display = "block";
         hint.style.display = "none";
@@ -352,14 +370,15 @@
       setVideoById(id);
     }
 
-    // Hook up UI events for YouTube loader
     document.getElementById("watchBtn").addEventListener("click", handleWatch);
+
     document.getElementById("ytUrl").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         handleWatch();
       }
     });
+
     document.getElementById("ytUrl").addEventListener("paste", (e) => {
       requestAnimationFrame(() => {
         const el = e.target;
@@ -367,29 +386,50 @@
       });
     });
 
+    /* ✅ NEW: Mobile embed toggle button */
+    (function initMobileEmbedToggle() {
+      const btn = document.getElementById("mobileEmbedToggle");
+
+      function updateButton() {
+        // If currently using mobile, show desktop icon to switch back.
+        btn.textContent = useMobileEmbed ? "🖥️" : "📱";
+        btn.title = useMobileEmbed ? "Switch to privacy-enhanced embed" : "Load mobile embed";
+        btn.setAttribute("aria-pressed", String(useMobileEmbed));
+        updateModeLabel();
+      }
+
+      btn.addEventListener("click", () => {
+        useMobileEmbed = !useMobileEmbed;
+        localStorage.setItem(STORAGE_KEY_MOBILE, useMobileEmbed ? "1" : "0");
+        // Reload the current video in the selected embed mode:
+        document.getElementById("player").src = buildEmbedSrc(currentVideoId);
+        updateButton();
+      });
+
+      // Apply stored preference on load (refresh iframe to match mode)
+      document.getElementById("player").src = buildEmbedSrc(currentVideoId);
+      updateButton();
+    })();
+
     /* ---------- Background video audio toggle ---------- */
     (function bgAudio() {
-      const video = document.getElementById('bgVideo');
-      const btn = document.getElementById('bgAudioToggle');
+      const video = document.getElementById("bgVideo");
+      const btn = document.getElementById("bgAudioToggle");
 
-      // Ensure correct initial state (muted, safe for autoplay)
       video.muted = true;
-      video.defaultMuted = true; // helps on Safari
-      video.volume = 1.0;        // full volume when unmuted
+      video.defaultMuted = true;
+      video.volume = 1.0;
 
       function updateButton() {
         const isMuted = video.muted || video.volume === 0;
-        btn.textContent = isMuted ? '🔇' : '🔊';
-        btn.setAttribute('aria-pressed', String(!isMuted));
-        btn.title = isMuted ? 'Unmute background video' : 'Mute background video';
+        btn.textContent = isMuted ? "🔇" : "🔊";
+        btn.setAttribute("aria-pressed", String(!isMuted));
+        btn.title = isMuted ? "Unmute background video" : "Mute background video";
       }
 
       async function toggleAudio() {
         try {
-          // Toggle mute
           video.muted = !video.muted;
-
-          // If unmuting, attempt to play (some browsers require user gesture—which this click is)
           if (!video.muted && video.paused) {
             await video.play().catch(() => {});
           }
@@ -398,65 +438,60 @@
         }
       }
 
-      btn.addEventListener('click', toggleAudio);
+      btn.addEventListener("click", toggleAudio);
       updateButton();
     })();
 
     /* ---------- Snow effect (Canvas) ---------- */
     (function initSnow() {
-      const canvas = document.getElementById('snowCanvas');
+      const canvas = document.getElementById("snowCanvas");
       if (!canvas) return;
-
-      const ctx = canvas.getContext('2d');
-      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const ctx = canvas.getContext("2d");
+      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       let width, height, dpr, flakes = [], running = false, rafId = 0;
 
       function rand(min, max) { return Math.random() * (max - min) + min; }
 
       function resize() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2); // cap for perf
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
         width = window.innerWidth;
         height = window.innerHeight;
         canvas.width = Math.floor(width * dpr);
         canvas.height = Math.floor(height * dpr);
-        canvas.style.width = width + 'px';
-        canvas.style.height = height + 'px';
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         seedFlakes();
       }
 
       function seedFlakes() {
-        // Density scales with area but is capped to stay lightweight
         const baseCount = Math.round((width * height) / 14000);
         const count = Math.max(40, Math.min(baseCount, 160));
         flakes = [];
         for (let i = 0; i < count; i++) {
-          const r = rand(0.6, 2.2);              // radius
+          const r = rand(0.6, 2.2);
           flakes.push({
             x: rand(0, width),
             y: rand(-height, height),
             r,
-            vy: rand(0.25, 0.8) + r * 0.05,      // fall speed
-            vx: rand(-0.15, 0.15),               // drift
-            a: rand(0, Math.PI * 2),             // angle for sway
-            va: rand(0.003, 0.01),               // angular velocity
-            o: rand(0.35, 0.9)                   // opacity
+            vy: rand(0.25, 0.8) + r * 0.05,
+            vx: rand(-0.15, 0.15),
+            a: rand(0, Math.PI * 2),
+            va: rand(0.003, 0.01),
+            o: rand(0.35, 0.9)
           });
         }
       }
 
       function draw() {
         ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = '#fff';
-
+        ctx.fillStyle = "#fff";
         for (let i = 0; i < flakes.length; i++) {
           const f = flakes[i];
-          // Horizontal sway
           f.a += f.va;
           f.x += Math.sin(f.a) * 0.4 + f.vx;
           f.y += f.vy;
 
-          // Wrap to top when leaving bottom/side
           if (f.y - f.r > height) {
             f.y = -rand(5, 40);
             f.x = rand(0, width);
@@ -470,7 +505,6 @@
           ctx.fill();
         }
         ctx.globalAlpha = 1;
-
         rafId = requestAnimationFrame(draw);
       }
 
@@ -487,20 +521,16 @@
       }
 
       resize();
-      window.addEventListener('resize', resize, { passive: true });
+      window.addEventListener("resize", resize, { passive: true });
 
-      // Respect reduced motion
-      if (mediaQuery.matches) {
-        stop();
-      } else {
-        start();
-      }
-      mediaQuery.addEventListener('change', (e) => {
-        if (e.matches) stop(); else start();
+      if (mediaQuery.matches) stop();
+      else start();
+
+      mediaQuery.addEventListener("change", (e) => {
+        if (e.matches) stop();
+        else start();
       });
     })();
-    /* -------- end snow -------- */
   </script>
 </body>
 </html>
-``
