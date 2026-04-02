@@ -4,11 +4,10 @@
   <meta charset="utf-8" />
   <title>TubeV2 Mobile</title>
 
-  <!-- Stable, mobile-first viewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    /* Page = theater background */
+    /* ===== PAGE BACKGROUND (BLACK BARS) ===== */
     html, body {
       margin: 0;
       width: 100%;
@@ -18,23 +17,70 @@
       align-items: center;
       justify-content: center;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: #fff;
     }
 
-    /* Simulated mobile screen (Duck Player style) */
-    .mobile-stage {
-      width: 390px;     /* iPhone width */
-      max-width: 100vw;
+    /* ===== FAKE MOBILE SCREEN ===== */
+    .mobile-screen {
+      width: 390px;          /* iPhone size */
+      height: 844px;
       background: #000;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
+      padding: 12px;
+      box-sizing: border-box;
     }
 
-    /* Maintain video integrity */
+    /* Scale correctly on real phones */
+    @media (max-width: 420px) {
+      .mobile-screen {
+        width: 100vw;
+        height: 100vh;
+      }
+    }
+
+    h1 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* ===== INPUT BAR ===== */
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .controls input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #111;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .controls button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ===== VIDEO BOX ===== */
     .player-wrap {
       width: 100%;
       aspect-ratio: 16 / 9;
       background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      flex-shrink: 0;
     }
 
     iframe {
@@ -45,18 +91,15 @@
       background: #000;
     }
 
-    /* Back button (optional) */
+    /* BACK BUTTON */
     .back-btn {
-      position: fixed;
-      top: 12px;
-      left: 12px;
-      padding: 8px 12px;
-      background: rgba(0,0,0,.75);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,.3);
+      margin-top: auto;
+      padding: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.25);
       border-radius: 10px;
+      color: #fff;
       font-size: 14px;
-      font-weight: 600;
       cursor: pointer;
     }
   </style>
@@ -64,16 +107,60 @@
 
 <body>
 
-  index.html
-    ⬅ Desktop
-  </button>
+  <div class="mobile-screen">
 
-  <div class="mobile-stage">
-    <div class="player-wrap">
-      https://www.youtube-nocookie.com/embed/Zy4oPoCDU4I?playsinline=1&rel=0
-      </iframe>
+    <h1>TubeV2 Mobile</h1>
+
+    <!-- INPUT LIKE INDEX.HTML -->
+    <div class="controls">
+      <input
+        id="ytUrl"
+        placeholder="Paste YouTube link or ID"
+        inputmode="url"
+      />
+      <button onclick="watch()">Watch</button>
     </div>
-  </div>
+
+    <!-- EMBED BOX -->
+    <div class="player-wrap">
+      <iframe
+        id="player"
+        src="https://www.youtube-nocookie.com/embed/Zy4oPoCDU4I?playsinline=1&rel=0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    </div>
+
+    <!-- BACK -->
+    <button
+      class="back-btn"
+      onclick="locationeturn str;
+
+      // Try URL parsing
+      try {
+        const url = new URL(str.startsWith("http") ? str : "https://" + str);
+
+        const v = url.searchParams.get("v");
+        if (v) return v;
+
+        const parts = url.pathname.split("/");
+        return parts.find(p => /^[a-zA-Z0-9_-]{11}$/.test(p)) || null;
+      } catch {
+        return null;
+      }
+    }
+
+    function watch() {
+      const input = document.getElementById("ytUrl").value;
+      const id = extractYouTubeId(input);
+      if (!id) return;
+
+      document.getElementById("player").src =
+        "https://www.youtube-nocookie.com/embed/" +
+        id +
+        "?autoplay=1&playsinline=1&rel=0";
+    }
+  </script>
 
 </body>
 </html>
